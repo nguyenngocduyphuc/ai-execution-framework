@@ -1,0 +1,15 @@
+{
+  "agents": [
+    {
+      "name": "agent_default",
+      "type": "general",
+      "capabilities": ["read", "write", "execute"]
+    },
+    {
+      "name": "agent_seo",
+      "type": "specialized",
+      "capabilities": ["seo_analysis", "content_generation"]
+    }
+  ],
+  "description": "Defines available AI agents and their capabilities."
+}

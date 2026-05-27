@@ -1,0 +1,9 @@
+{
+  "routes": {
+    "default": "agent_default",
+    "seo": "agent_seo",
+    "dev": "agent_dev",
+    "ops": "agent_ops"
+  },
+  "description": "Defines routing rules for AI agents based on task type."
+}
