@@ -16,7 +16,7 @@ AXF is an open-source framework that transforms AI agents from "chatbots" into *
 
 1.  **Clone the Repo**:
     ```bash
-    git clone https://github.com/[your-org]/ai-execution-framework.git
+    git clone https://github.com/nguyenngocduyphuc/ai-execution-framework.git
     cd ai-execution-framework
     ```
 2.  **Bootstrap Environment**:

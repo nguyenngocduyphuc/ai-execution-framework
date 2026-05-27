@@ -10,7 +10,7 @@ We welcome contributions! AXF is a community-driven project.
 4.  **Verify**: Run `python verification/verify_environment.py` and any relevant tests.
 5.  **Commit**: Use clear, descriptive commit messages.
 6.  **Push**: `git push origin feature/my-feature`
-7.  **Pull Request**: Open a PR against the `main` branch.
+7.  **Pull Request**: Open a PR against the `main` branch at [ai-execution-framework](https://github.com/nguyenngocduyphuc/ai-execution-framework).
 
 ## 📋 Guidelines
 
