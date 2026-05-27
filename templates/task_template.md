@@ -17,6 +17,8 @@ task:
   repo_path: "Path to the repository (e.g., /path/to/repo)"
   priority: "P0 | P1 | P2 | P3"
   status: "To Do | In Progress | Blocked | Done"
+  asana_gid: "[Auto-filled by axf_asana.py]"
+  asana_url: "[Auto-filled by axf_asana.py]"
 ```
 
 ## Acceptance Criteria

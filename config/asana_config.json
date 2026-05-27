@@ -1,0 +1,5 @@
+{
+  "workspace_gid": "YOUR_WORKSPACE_GID",
+  "project_gid": "YOUR_PROJECT_GID",
+  "description": "Asana config for AXF automation. Replace GIDs with your actual values."
+}

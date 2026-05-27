@@ -51,7 +51,7 @@ A task is **Done** only if:
 
 Otherwise, the task is **In Progress** or **Blocked**. Never "Done".
 
-## 🛠️ Task Model
+## 🛠️ Task Model & Asana Integration
 
 Every task should use this YAML structure:
 
@@ -71,7 +71,15 @@ task:
   stop_rules:
     - "Rule 1"
     - "Rule 2"
+  asana_gid: "Asana Task GID (Auto-filled)"
+  asana_url: "Asana Task URL (Auto-filled)"
 ```
+
+### 🔗 Asana Automation (Anthropic-Style)
+Use `scripts/axf_asana.py` to sync local `task.md` with Asana:
+1.  **Create**: `python scripts/axf_asana.py create task.md` → Creates Asana task, injects GID.
+2.  **Update**: `python scripts/axf_asana.py update task.md --status done --evidence <url>` → Updates Asana, attaches evidence.
+3.  **List**: `python scripts/axf_asana.py list` → Shows assigned tasks.
 
 ## 📚 References
 
