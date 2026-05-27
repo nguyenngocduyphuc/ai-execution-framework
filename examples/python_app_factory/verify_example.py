@@ -22,9 +22,40 @@ def check_structure(path):
     return len(missing) == 0, missing
 
 def check_tests(path):
-    """Simulate checking test coverage (mock)."""
-    # In real usage, parse pytest --cov output
-    return True, {"coverage": 85, "tests_passed": 7}
+    """Run real pytest and check coverage."""
+    try:
+        # Run pytest with coverage
+        result = subprocess.run(
+            ["python", "-m", "pytest", "tests/", "-v", "--cov=src", "--cov-report=term-missing"],
+            capture_output=True,
+            text=True,
+            cwd=path
+        )
+        
+        if result.returncode != 0:
+            return False, {"error": "Tests failed", "output": result.stdout}
+        
+        # Parse coverage from output (simple heuristic)
+        coverage = 0
+        tests_passed = 0
+        
+        for line in result.stdout.split("\n"):
+            if "TOTAL" in line:
+                # Example: TOTAL 10 2 80%
+                parts = line.split()
+                if len(parts) > 2 and "%" in parts[-1]:
+                    coverage = int(parts[-1].replace("%", ""))
+            if "passed" in line:
+                # Example: 3 passed in 0.12s
+                try:
+                    tests_passed = int(line.split()[0])
+                except (IndexError, ValueError):
+                    pass
+        
+        return coverage >= 80 and tests_passed > 0, {"coverage": coverage, "tests_passed": tests_passed}
+        
+    except FileNotFoundError:
+        return False, {"error": "pytest not found. Install via: pip install pytest pytest-cov"}
 
 def check_dockerfile(path):
     """Check if Dockerfile contains required instructions."""

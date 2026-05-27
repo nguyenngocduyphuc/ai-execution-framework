@@ -12,10 +12,19 @@ Usage:
 import os
 import sys
 import json
-import re
-import requests
+import time
 import argparse
+import subprocess
 from pathlib import Path
+
+# Check for PyYAML
+try:
+    import yaml
+except ImportError:
+    print("❌ PyYAML is required. Install via: pip install pyyaml")
+    sys.exit(1)
+
+import requests
 
 # Config
 ASANA_TOKEN = os.environ.get("ASANA_TOKEN")
@@ -30,25 +39,43 @@ def load_config():
         return json.load(f)
 
 def parse_task_md(path):
-    """Parse YAML frontmatter from task.md."""
+    """Parse YAML frontmatter from task.md using PyYAML."""
     with open(path, "r") as f:
         content = f.read()
     
-    match = re.search(r"---\n(.*?)\n---", content, re.DOTALL)
-    if not match:
+    match = content.split("---")
+    if len(match) < 3:
         print("❌ No YAML frontmatter found in task.md")
         sys.exit(1)
     
-    fm = match.group(1)
-    task = {}
-    
-    # Simple YAML parser for our specific structure
-    for line in fm.split("\n"):
-        if ":" in line:
-            key, val = line.split(":", 1)
-            task[key.strip()] = val.strip().strip('"')
-    
-    return task
+    try:
+        task = yaml.safe_load(match[1])
+        if not isinstance(task, dict):
+            print("❌ Invalid YAML format in task.md")
+            sys.exit(1)
+        return task
+    except yaml.YAMLError as e:
+        print(f"❌ YAML parsing error: {e}")
+        sys.exit(1)
+
+def asana_api_request(method, url, headers, payload=None):
+    """Robust API request with retry logic."""
+    for attempt in range(3):
+        try:
+            resp = requests.request(method, url, json=payload, headers=headers)
+            if resp.status_code == 429:
+                retry_after = int(resp.headers.get('Retry-After', 10))
+                print(f"⏳ Rate limited. Retrying in {retry_after}s...")
+                time.sleep(retry_after)
+                continue
+            return resp
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Network error: {e}")
+            if attempt < 2:
+                time.sleep(5)
+            else:
+                sys.exit(1)
+    return None
 
 def create_task(task_md_path):
     """Create Asana task from task.md."""
@@ -70,30 +97,31 @@ def create_task(task_md_path):
     }
     
     print(f"📤 Creating task in Asana: {payload['data']['name']}...")
-    resp = requests.post("https://app.asana.com/api/1.0/tasks", json=payload, headers=headers)
+    resp = asana_api_request("POST", "https://app.asana.com/api/1.0/tasks", headers, payload)
     
-    if resp.status_code == 201:
+    if resp and resp.status_code == 201:
         asana_task = resp.json()["data"]
         asana_gid = asana_task["gid"]
         asana_url = asana_task["permalink"]
         
         print(f"✅ Created: {asana_url}")
         
-        # Inject GID back into task.md
-        with open(task_md_path, "r") as f:
-            content = f.read()
+        # Inject GID back into task.md safely using YAML dump
+        task["asana_gid"] = asana_gid
+        task["asana_url"] = asana_url
         
-        # Add asana_gid if not exists
-        if "asana_gid" not in content:
-            content = content.replace("---", f"---\nasana_gid: {asana_gid}", 1)
-            content = content.replace("---", f"---\nasana_url: {asana_url}", 1)
-            with open(task_md_path, "w") as f:
-                f.write(content)
-            print("📝 Injected asana_gid into task.md")
+        # Reconstruct file
+        match = open(task_md_path).read().split("---")
+        new_fm = yaml.dump(task, default_flow_style=False)
+        new_content = f"---\n{new_fm}---\n{match[2]}"
+        
+        with open(task_md_path, "w") as f:
+            f.write(new_content)
+        print("📝 Injected asana_gid into task.md")
     else:
-        print(f"❌ Failed: {resp.text}")
+        print(f"❌ Failed: {resp.text if resp else 'No response'}")
 
-def update_task(task_md_path, status, evidence):
+def update_task(task_md_path, status, evidence, done):
     """Update Asana task status and add evidence comment."""
     if not ASANA_TOKEN:
         print("❌ ASANA_TOKEN not set in environment.")
@@ -108,18 +136,24 @@ def update_task(task_md_path, status, evidence):
     
     headers = {"Authorization": f"Bearer {ASANA_TOKEN}"}
     
-    # 1. Update Status (via custom field or notes for now)
-    # Note: Asana status updates usually require custom fields. 
-    # For simplicity, we'll add a comment and update notes.
+    # 1. Update Status (Mark as completed if --done flag is set)
+    if done:
+        payload = {"data": {"completed": True}}
+        resp = asana_api_request("PUT", f"https://app.asana.com/api/1.0/tasks/{asana_gid}", headers, payload)
+        if resp and resp.status_code == 200:
+            print("✅ Task marked as Completed in Asana.")
+        else:
+            print(f"⚠️ Failed to mark completed: {resp.text if resp else 'No response'}")
+    
+    # 2. Add Evidence Comment
     comment_text = f"🤖 AXF Agent Update:\nStatus: {status}\nEvidence: {evidence}"
-    
     payload = {"data": {"text": comment_text}}
-    resp = requests.post(f"https://app.asana.com/api/1.0/tasks/{asana_gid}/stories", json=payload, headers=headers)
+    resp = asana_api_request("POST", f"https://app.asana.com/api/1.0/tasks/{asana_gid}/stories", headers, payload)
     
-    if resp.status_code == 201:
-        print(f"✅ Updated Asana Task {asana_gid} with evidence.")
+    if resp and resp.status_code == 201:
+        print(f"✅ Attached evidence to Asana Task {asana_gid}.")
     else:
-        print(f"❌ Failed to update: {resp.text}")
+        print(f"⚠️ Failed to attach evidence: {resp.text if resp else 'No response'}")
 
 def list_tasks():
     """List tasks assigned to current agent in Asana."""
@@ -131,20 +165,24 @@ def list_tasks():
     headers = {"Authorization": f"Bearer {ASANA_TOKEN}"}
     
     # Get user GID first
-    user_resp = requests.get("https://app.asana.com/api/1.0/users/me", headers=headers)
+    user_resp = asana_api_request("GET", "https://app.asana.com/api/1.0/users/me", headers)
+    if not user_resp or user_resp.status_code != 200:
+        print(f"❌ Failed to get user info: {user_resp.text if user_resp else 'No response'}")
+        return
     user_gid = user_resp.json()["data"]["gid"]
     
     # Get tasks
     params = {"assignee": user_gid, "project": config["project_gid"]}
-    resp = requests.get("https://app.asana.com/api/1.0/tasks", params=params, headers=headers)
+    resp = asana_api_request("GET", "https://app.asana.com/api/1.0/tasks", headers, params)
     
-    if resp.status_code == 200:
+    if resp and resp.status_code == 200:
         tasks = resp.json()["data"]
         print(f"📋 Found {len(tasks)} tasks:")
         for t in tasks:
-            print(f"  - [{t['completed']}] {t['name']} ({t['permalink']})")
+            status = "✅ Done" if t.get('completed') else "⏳ In Progress"
+            print(f"  - {status} | {t['name']} ({t['permalink']})")
     else:
-        print(f"❌ Failed to list tasks: {resp.text}")
+        print(f"❌ Failed to list tasks: {resp.text if resp else 'No response'}")
 
 def main():
     parser = argparse.ArgumentParser(description="AXF Asana Bridge")
@@ -159,6 +197,7 @@ def main():
     update_parser.add_argument("task_md", help="Path to task.md")
     update_parser.add_argument("--status", default="In Progress")
     update_parser.add_argument("--evidence", required=True)
+    update_parser.add_argument("--done", action="store_true", help="Mark task as completed")
     
     # List
     subparsers.add_parser("list", help="List assigned tasks")
@@ -168,7 +207,7 @@ def main():
     if args.command == "create":
         create_task(args.task_md)
     elif args.command == "update":
-        update_task(args.task_md, args.status, args.evidence)
+        update_task(args.task_md, args.status, args.evidence, args.done)
     elif args.command == "list":
         list_tasks()
     else:
