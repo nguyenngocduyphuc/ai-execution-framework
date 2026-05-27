@@ -113,7 +113,7 @@ def create_task(task_md_path):
         # Reconstruct file
         match = open(task_md_path).read().split("---")
         new_fm = yaml.dump(task, default_flow_style=False)
-        new_content = f"---\n{new_fm}---{'---'.join(match[2:])}"
+        new_content = f"---\n{new_fm}---\n{'---'.join(match[2:])}"
         
         with open(task_md_path, "w") as f:
             f.write(new_content)
