@@ -15,12 +15,20 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
+# Check Python Version >= 3.12
+PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+REQUIRED_VERSION="3.12"
+if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$PYTHON_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then
+    echo "❌ Python version $PYTHON_VERSION found. AXF requires Python >= 3.12."
+    exit 1
+fi
+
 if ! command -v git &> /dev/null; then
     echo "❌ Git not found. Please install Git."
     exit 1
 fi
 
-echo "✅ Prerequisites met."
+echo "✅ Prerequisites met (Python $PYTHON_VERSION)."
 
 # 2. Setup Virtual Environment
 echo "🐍 Setting up virtual environment..."

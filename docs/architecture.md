@@ -29,27 +29,27 @@ ai-execution-framework/
 ├── config/                 # Configuration
 │   ├── routes.json         # Agent routing rules
 │   ├── agents.json         # Agent definitions
-│   ├── tools.json          # Tool configurations
-│   └── environments.json   # Env variables & paths
+│   ├── tools.json          # [Planned v0.2] Tool configurations
+│   └── environments.json   # [Planned v0.2] Env variables & paths
 │
 ├── templates/              # Standardized Templates
 │   ├── task_template.md    # Task definition format
-│   ├── project_template.md # Project kickoff format
+│   ├── project_template.md # [Planned v0.2] Project kickoff format
 │   └── evidence_template.md# Evidence attachment format
 │
 ├── verification/           # Verification Scripts
 │   ├── verify_environment.py # Check env health
-│   ├── verify_task.py      # Check task completion
-│   └── verify_routes.py    # Check agent routing
+│   ├── verify_task.py      # [Planned v0.2] Check task completion
+│   └── verify_routes.py    # [Planned v0.2] Check agent routing
 │
 ├── scripts/                # Utility Scripts
 │   └── (automation tools)
 │
 ├── examples/               # Real-World Examples
-│   ├── wordpress_seo/      # SEO pipeline example
-│   ├── python_app_factory/ # Python dev example
-│   ├── automation_project/ # Automation example
-│   └── pharma_validation_docs/ # Pharma compliance example
+│   ├── wordpress_seo/      # SEO pipeline example (Active)
+│   ├── python_app_factory/ # Python dev example (Active)
+│   ├── automation_project/ # [Planned v0.2] Automation example
+│   └── pharma_validation_docs/ # [Planned v0.2] Pharma compliance example
 │
 ├── AGENTS.md               # Universal Agent Contract (SSoT)
 ├── README.md               # Project Overview

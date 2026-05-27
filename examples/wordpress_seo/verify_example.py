@@ -43,37 +43,36 @@ def main():
     print("🔎 AXF Verification: WordPress SEO Example")
     print("=" * 45)
     
-    # Simulate checking 5 posts
-    results = []
-    for i in range(1, 6):
-        # In real usage, load actual file content
-        mock_content = f"""---
-title: "Post {i}"
-keyphrase: "GxP Compliance"
-slug: "post-{i}"
-meta_desc: "Learn about GxP compliance in pharma."
----
-# GxP Compliance Guide
-This article covers GxP compliance...
-"""
-        fm_ok, fm_msg = check_frontmatter(mock_content)
-        kp_ok, kp_msg = check_keyphrase(mock_content, "GxP Compliance")
+    # Read real sample file
+    sample_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample_post.md")
+    if not os.path.exists(sample_path):
+        print("❌ FAIL: sample_post.md not found")
+        return 1
         
-        passed = fm_ok and kp_ok
-        results.append({"post": i, "passed": passed})
-        
-        status = "✅ PASS" if passed else "❌ FAIL"
-        print(f"{status}: Post {i} ({fm_msg}, {kp_msg})")
+    with open(sample_path, "r") as f:
+        content = f.read()
     
-    all_passed = all(r["passed"] for r in results)
-    print(f"\n{'🎉 All posts valid!' if all_passed else '⚠️ Some posts failed.'}")
+    # Extract keyphrase from frontmatter
+    kp_match = re.search(r"keyphrase:\s*\"(.*?)\"", content)
+    keyphrase = kp_match.group(1) if kp_match else None
     
-    report = {"status": "PASS" if all_passed else "FAIL", "details": results}
+    fm_ok, fm_msg = check_frontmatter(content)
+    kp_ok, kp_msg = check_keyphrase(content, keyphrase)
+    
+    passed = fm_ok and kp_ok
+    results = [{"post": "sample_post.md", "passed": passed}]
+    
+    status = "✅ PASS" if passed else "❌ FAIL"
+    print(f"{status}: {sample_path} ({fm_msg}, {kp_msg})")
+    
+    print(f"\n{'🎉 Sample post valid!' if passed else '⚠️ Sample post failed.'}")
+    
+    report = {"status": "PASS" if passed else "FAIL", "details": results}
     with open("seo_verification_report.json", "w") as f:
         json.dump(report, f, indent=2)
     
     print("📄 Report saved to seo_verification_report.json")
-    return 0 if all_passed else 1
+    return 0 if passed else 1
 
 if __name__ == "__main__":
     sys.exit(main())

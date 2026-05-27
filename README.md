@@ -1,7 +1,9 @@
 # AI Execution Framework (AXF)
 
-> **Standardize AI & Human Collaboration.**  
-> AI-Agent Agnostic. Verification First. Everything-As-Code.
+> **Status**: `v0.1.0-alpha` — Internal Alpha. Ready for community testing.
+
+Standardize AI & Human Collaboration.  
+AI-Agent Agnostic. Verification First. Everything-As-Code.
 
 AXF is an open-source framework that transforms AI agents from "chatbots" into **structured execution workers**. It provides a universal contract, templates, and verification tools to ensure AI-assisted work is **observable, reproducible, verifiable, and versioned**.
 
@@ -21,12 +23,9 @@ AXF is an open-source framework that transforms AI agents from "chatbots" into *
     ```
 2.  **Bootstrap Environment**:
     ```bash
-    # macOS
+    # macOS (Current Support)
     chmod +x bootstrap/macos.sh && ./bootstrap/macos.sh
-    # Windows
-    powershell -ExecutionPolicy Bypass -File bootstrap/windows.ps1
-    # Linux
-    chmod +x bootstrap/linux.sh && ./bootstrap/linux.sh
+    # Windows & Linux support is planned for v0.2.0.
     ```
 3.  **Read the Contract**:
     Open `AGENTS.md`. This is the "Constitution" for your AI agent. Read it before starting any task.
