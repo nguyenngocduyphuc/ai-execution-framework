@@ -27,7 +27,8 @@ AXF is an open-source framework that transforms AI agents from "chatbots" into *
     chmod +x bootstrap/macos.sh && ./bootstrap/macos.sh
     # Windows
     powershell -ExecutionPolicy Bypass -File bootstrap/windows.ps1
-    # Linux (Planned v0.2)
+    # Linux
+    chmod +x bootstrap/linux.sh && ./bootstrap/linux.sh
     ```
 3.  **Read the Contract**:
     Open `AGENTS.md`. This is the "Constitution" for your AI agent. Read it before starting any task.
