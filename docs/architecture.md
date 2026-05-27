@@ -24,7 +24,7 @@ ai-execution-framework/
 ├── bootstrap/              # Environment Setup
 │   ├── macos.sh            # macOS bootstrap script
 │   ├── windows.ps1         # Windows bootstrap script
-│   └── linux.sh            # Linux bootstrap script
+│   └── linux.sh            # [Planned v0.2] Linux bootstrap script
 │
 ├── config/                 # Configuration
 │   ├── routes.json         # Agent routing rules
